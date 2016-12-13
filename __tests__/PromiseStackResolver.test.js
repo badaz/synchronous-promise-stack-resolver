@@ -384,6 +384,58 @@ describe('SynchronousPromiseStackResolver initialization', () => {
   });
 });
 
+describe('SynchronousPromiseStackResolver start method', () => {
+  it('should instantiate processPromiseStackInterval', () => {
+    const promiseStackResolver = new PromiseStackResolver(AsyncStorage, new EventDispatcher());
+    return promiseStackResolver.init(getDefaultConfig())
+      .then(() => {
+        return promiseStackResolver.start()
+          .then(() => {
+            expect(promiseStackResolver.processPromiseStackInterval).toBeTruthy();
+          });
+      });
+  });
+  it('should instantiate updateStorageInterval if useAsyncStorage is true', () => {
+    const promiseStackResolver = new PromiseStackResolver(AsyncStorage, new EventDispatcher());
+    return promiseStackResolver.init(getDefaultConfig())
+      .then(() => {
+        return promiseStackResolver.start()
+          .then(() => {
+            expect(promiseStackResolver.updateStorageInterval).toBeTruthy();
+          });
+      });
+  });
+  it('should NOT instantiate updateStorageInterval nor processPromiseStackInterval if not set in config', () => {
+    const promiseStackResolver = new PromiseStackResolver();
+    return promiseStackResolver.init(getMinimalConfig())
+      .then(() => {
+        return promiseStackResolver.start()
+          .then(() => {
+            expect(promiseStackResolver.updateStorageInterval).toBeFalsy();
+            expect(promiseStackResolver.processPromiseStackInterval).toBeFalsy();
+          });
+      });
+  });
+});
+
+describe('SynchronousPromiseStackResolver stop method', () => {
+  it('should delete intervals and set status to off', () => {
+    const promiseStackResolver = new PromiseStackResolver(AsyncStorage, new EventDispatcher());
+    return promiseStackResolver.init(getDefaultConfig())
+      .then(() => {
+        return promiseStackResolver.start()
+          .then(() => {
+            return promiseStackResolver.stop()
+              .then(() => {
+                expect(promiseStackResolver.processPromiseStackInterval).toBeFalsy();
+                expect(promiseStackResolver.updateStorageInterval).toBeFalsy();
+                expect(promiseStackResolver.getStatus()).toBe('off');
+              });
+          });
+      });
+  });
+});
+
 describe('SynchronousPromiseStackResolver addItem method', () => {
   it('should increase stack size', () => {
     const promiseStackResolver = new PromiseStackResolver(AsyncStorage, new EventDispatcher());
