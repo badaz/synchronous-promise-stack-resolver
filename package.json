@@ -10,11 +10,11 @@
     "src"
   ],
   "scripts": {
-    "lint": "BABEL_ENV=development && eslint src/**/*.js test/**/*.js __test__/**/*.js",
+    "lint": "eslint src/**/*.js test/**/*.js __test__/**/*.js",
     "clean": "rimraf dist",
-    "test": "BABEL_ENV=development && jest",
+    "test": "jest",
     "test:watch": "npm run test -- --watch",
-    "build": "BABEL_ENV=development && babel src --out-dir dist",
+    "build": "babel src --out-dir dist",
     "check:src": "npm run test",
     "prepublish": "npm run clean && npm run check:src && npm run build"
   },
