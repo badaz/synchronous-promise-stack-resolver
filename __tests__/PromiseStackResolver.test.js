@@ -3,7 +3,7 @@ import PromiseStackResolver, {
   STATUS_READY,
   STATUS_OFF,
 } from '../src/index';
-import { PromiseStackResolverError } from '../src/errors'; 
+import { PromiseStackResolverError } from '../src/errors';
 import * as AsyncStorage from '../test/mock/AsyncStorage';
 import EventDispatcher from '../test/mock/EventDispatcher';
 
@@ -28,6 +28,12 @@ const getDefaultConfig = () => {
     createPromiseCaller,
     updateAsyncStorageIntervalLength: 3000,
     processPromiseStackIntervalLength: 3000,
+  };
+};
+
+const getMinimalConfig = () => {
+  return {
+    createPromiseCaller,
   };
 };
 
@@ -91,10 +97,11 @@ const getNotProcessingConfig = () => {
   return config;
 }
 
-const getNoProcessPromiseStackIntervalLengthConfig = () => {
-  const faultyConfig = getDefaultConfig();
-  faultyConfig.processPromiseStackIntervalLength = undefined;
-  return faultyConfig;
+const getEventDispatchingConfig = (startEventList, endEventList) => {
+  const config = getDefaultConfig();
+  config.getProcessStackStartEventList = () => startEventList;
+  config.getProcessStackEndEventList = () => endEventList;
+  return config;
 }
 
 const getWrongProcessPromiseStackIntervalLengthConfig = () => {
@@ -155,7 +162,7 @@ afterEach(() => {
 })
 
 describe('SynchronousPromiseStackResolver constructor', () => {
-  it('works with no args', () => {
+  it('succeeds with no args', () => {
     const promiseStackResolver = new PromiseStackResolver();
     expect(promiseStackResolver).toBeInstanceOf(PromiseStackResolver);
     expect(promiseStackResolver.getStatus()).toBe(STATUS_OFF);
@@ -163,7 +170,7 @@ describe('SynchronousPromiseStackResolver constructor', () => {
     expect(promiseStackResolver.getStackSize()).toBe(0);
     expect(promiseStackResolver.getSecondaryStackSize()).toBe(0);
   });
-  it('works with async storage implementation', () => {
+  it('succeeds with async storage implementation', () => {
     const promiseStackResolver = new PromiseStackResolver(AsyncStorage);
     expect(promiseStackResolver).toBeInstanceOf(PromiseStackResolver);
     expect(promiseStackResolver.getStatus()).toBe(STATUS_OFF);
@@ -171,7 +178,7 @@ describe('SynchronousPromiseStackResolver constructor', () => {
     expect(promiseStackResolver.getStackSize()).toBe(0);
     expect(promiseStackResolver.getSecondaryStackSize()).toBe(0);
   });
-  it('works with event dispatcher implementation', () => {
+  it('succeeds with event dispatcher implementation', () => {
     const eventDispatcher = new EventDispatcher();
     const promiseStackResolver = new PromiseStackResolver(null, eventDispatcher);
     expect(promiseStackResolver).toBeInstanceOf(PromiseStackResolver);
@@ -180,7 +187,7 @@ describe('SynchronousPromiseStackResolver constructor', () => {
     expect(promiseStackResolver.getStackSize()).toBe(0);
     expect(promiseStackResolver.getSecondaryStackSize()).toBe(0);
   });
-  it('works with async storage and event dispatcher implementation', () => {
+  it('succeeds with async storage and event dispatcher implementation', () => {
     const eventDispatcher = new EventDispatcher();
     const promiseStackResolver = new PromiseStackResolver(AsyncStorage, eventDispatcher);
     expect(promiseStackResolver).toBeInstanceOf(PromiseStackResolver);
@@ -197,17 +204,6 @@ describe('SynchronousPromiseStackResolver initialization', () => {
     expect(() => promiseStackResolver.init()).toThrowError(PromiseStackResolverError);
     expect(() => promiseStackResolver.init()).toThrowError('config is required');
   });
-  it('fails if config is missing processPromiseStackIntervalLength', () => {
-    const promiseStackResolver = new PromiseStackResolver();
-    expect(() => promiseStackResolver
-      .init(getNoProcessPromiseStackIntervalLengthConfig()))
-      .toThrowError(PromiseStackResolverError)
-    ;
-    expect(() => promiseStackResolver
-      .init(getNoProcessPromiseStackIntervalLengthConfig()))
-      .toThrowError('processPromiseStackIntervalLength is required and must be a number')
-    ;
-  });
   it('fails if config has wrong processPromiseStackIntervalLength type', () => {
     const promiseStackResolver = new PromiseStackResolver();
     expect(() => promiseStackResolver
@@ -215,7 +211,7 @@ describe('SynchronousPromiseStackResolver initialization', () => {
     ;
     expect(() => promiseStackResolver
       .init(getWrongProcessPromiseStackIntervalLengthConfig()))
-      .toThrowError('processPromiseStackIntervalLength is required and must be a number')
+      .toThrowError('processPromiseStackIntervalLength must be a number')
     ;
   });
   it('fails if config has updateAsyncStorageIntervalLength and wrong updateAsyncStorageIntervalLength type', () => {
@@ -229,6 +225,7 @@ describe('SynchronousPromiseStackResolver initialization', () => {
       .toThrowError('updateAsyncStorageIntervalLength must be a number')
     ;
   });
+
   it('fails if config has updateAsyncStorageIntervalLength and wrong updateAsyncStorageIntervalLength type', () => {
     const promiseStackResolver = new PromiseStackResolver();
     expect(() => promiseStackResolver
@@ -325,6 +322,19 @@ describe('SynchronousPromiseStackResolver initialization', () => {
     expect(() => promiseStackResolver
       .init(getDefaultConfig()))
       .toThrowError('useAsyncStorage is enabled but no asyncStorageManager is present')
+    ;
+  });
+
+  it('succeeds with minimal config', () => {
+    const eventDispatcher = new EventDispatcher();
+    const promiseStackResolver = new PromiseStackResolver(AsyncStorage, eventDispatcher);
+    return promiseStackResolver.init(getMinimalConfig())
+      .then((data) => {
+        expect(promiseStackResolver.getStatus()).toBe(STATUS_READY);
+        expect(promiseStackResolver.useAsyncStorage()).toBeFalsy();
+        expect(promiseStackResolver.storeIndex()).toBeFalsy();
+        expect(promiseStackResolver.useEventDispatcher()).toBeFalsy();
+      })
     ;
   });
 
@@ -492,7 +502,7 @@ describe('handleError method', () => {
 });
 
 describe('shouldProcessStack method', () => {
-  it('should prevent processing stack if false', () => {
+  it('should prevent processing stack if it returns false', () => {
     const promiseStackResolver = new PromiseStackResolver(AsyncStorage, new EventDispatcher());
     const config = getNotProcessingConfig();
     return promiseStackResolver.init(config)
@@ -509,3 +519,29 @@ describe('shouldProcessStack method', () => {
   });
 });
 
+describe('eventDispatcher', () => {
+  it('should dispatch events on start and end processing when provided', () => {
+    const event1 = {}, event2 = {}, event3 = {}, event4 = {};
+    const startEventList = [event1, event2];
+    const endEventList = [event3, event4];
+    const eventDispatcher = new EventDispatcher();
+    eventDispatcher.dispatch = jest.fn((event) => true);
+    const promiseStackResolver = new PromiseStackResolver(AsyncStorage, eventDispatcher);
+    const config = getEventDispatchingConfig(startEventList, endEventList);
+    return promiseStackResolver.init(config)
+      .then(() => {
+        promiseStackResolver.addItem({});
+        promiseStackResolver.addItem({});
+        expect(promiseStackResolver.getStackSize()).toBe(2);
+        return promiseStackResolver.processPromiseStack()
+          .then(() => {
+            expect(promiseStackResolver.getStackSize()).toBe(0);
+            expect(eventDispatcher.dispatch).toBeCalled();
+            expect(eventDispatcher.dispatch.mock.calls[0][0]).toBe(event1);
+            expect(eventDispatcher.dispatch.mock.calls[1][0]).toBe(event2);
+            expect(eventDispatcher.dispatch.mock.calls[2][0]).toBe(event3);
+            expect(eventDispatcher.dispatch.mock.calls[3][0]).toBe(event4);
+          })
+      })
+  });
+});

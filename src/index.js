@@ -71,8 +71,8 @@ class PromiseStackResolver {
     }
     this.updateAsyncStorageIntervalLength = config.updateAsyncStorageIntervalLength;
 
-    if (!config.processPromiseStackIntervalLength || typeof config.processPromiseStackIntervalLength !== 'number') {
-      throw new PromiseStackResolverError('processPromiseStackIntervalLength is required and must be a number');
+    if (!!config.processPromiseStackIntervalLength && typeof config.processPromiseStackIntervalLength !== 'number') {
+      throw new PromiseStackResolverError('processPromiseStackIntervalLength must be a number');
     }
     this.processPromiseStackIntervalLength = config.processPromiseStackIntervalLength;
 
@@ -267,10 +267,15 @@ class PromiseStackResolver {
   }
 
   start() {
+    if (this.status !== STATUS_OFF) {
+      return this.stop().then(() => this.start())
+    }
     if (this.useAsyncStorage() && this.updateAsyncStorageIntervalLength) {
       this.updateStorageInterval = setInterval(() => this.updateStorage(), this.updateAsyncStorageIntervalLength);
     }
-    this.processPromiseStackInterval = setInterval(() => this.processPromiseStack(), this.processPromiseStackIntervalLength);
+    if (this.processPromiseStackIntervalLength) {
+      this.processPromiseStackInterval = setInterval(() => this.processPromiseStack(), this.processPromiseStackIntervalLength);
+    }
     return Promise.resolve();
   }
 
