@@ -315,11 +315,6 @@ var PromiseStackResolver = function () {
     value: function start() {
       var _this5 = this;
 
-      if (this.status !== STATUS_OFF) {
-        return this.stop().then(function () {
-          return _this5.start();
-        });
-      }
       if (this.useAsyncStorage() && this.updateAsyncStorageIntervalLength) {
         this.updateStorageInterval = setInterval(function () {
           return _this5.updateStorage();
