@@ -2,7 +2,13 @@
   "name": "synchronous-promise-stack-resolver",
   "version": "1.0.0",
   "description": "Synchronously resolves promises using localForage (not tested) or react native's asyncStorage if needed and any kind of event dispatcher",
+  "author": "Sylvère Grégeois",
+  "license": "MIT",
   "main": "dist/index.js",
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "lint": "BABEL_ENV=development && eslint src/**/*.js test/**/*.js __test__/**/*.js",
     "clean": "rimraf dist",
@@ -12,8 +18,6 @@
     "check:src": "npm run test",
     "prepublish": "npm run clean && npm run check:src && npm run build"
   },
-  "author": "Sylvère Grégeois",
-  "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.18.0",
     "babel-core": "^6.20.0",
