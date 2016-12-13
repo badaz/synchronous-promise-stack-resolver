@@ -97,8 +97,8 @@ var PromiseStackResolver = function () {
       }
       this.updateAsyncStorageIntervalLength = config.updateAsyncStorageIntervalLength;
 
-      if (!config.processPromiseStackIntervalLength || typeof config.processPromiseStackIntervalLength !== 'number') {
-        throw new _errors.PromiseStackResolverError('processPromiseStackIntervalLength is required and must be a number');
+      if (!!config.processPromiseStackIntervalLength && typeof config.processPromiseStackIntervalLength !== 'number') {
+        throw new _errors.PromiseStackResolverError('processPromiseStackIntervalLength must be a number');
       }
       this.processPromiseStackIntervalLength = config.processPromiseStackIntervalLength;
 
@@ -312,14 +312,21 @@ var PromiseStackResolver = function () {
     value: function start() {
       var _this5 = this;
 
+      if (this.status !== STATUS_OFF) {
+        return this.stop().then(function () {
+          return _this5.start();
+        });
+      }
       if (this.useAsyncStorage() && this.updateAsyncStorageIntervalLength) {
         this.updateStorageInterval = setInterval(function () {
           return _this5.updateStorage();
         }, this.updateAsyncStorageIntervalLength);
       }
-      this.processPromiseStackInterval = setInterval(function () {
-        return _this5.processPromiseStack();
-      }, this.processPromiseStackIntervalLength);
+      if (this.processPromiseStackIntervalLength) {
+        this.processPromiseStackInterval = setInterval(function () {
+          return _this5.processPromiseStack();
+        }, this.processPromiseStackIntervalLength);
+      }
       return Promise.resolve();
     }
   }, {
