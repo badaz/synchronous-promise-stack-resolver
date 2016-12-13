@@ -17,7 +17,7 @@ Once configured and initialized, the PromiseStackResolver can be used in differe
 The PromiseStackResolver's constructor optionnaly takes an implementation of asynchronous storage as first argument (React Native's AsyncStorage or browser's LocalForage) that must implement async methods getItem, setItem and removeItem. As a second argument you may provide an event dispatcher of your choice that must implement a dispatch method.
 
 ### Configuration
-The init method takes an object as only arg which must contain some configuration data, here is the list:
+The init method takes an object as only argument which must contain some configuration data, here is the list:
 - createPromiseCaller (optional): `function` returning `function` that returns a Promise object (see below),
 - useEventDispatcher (optional): `boolean`,
 - useAsyncStorage (optional): `boolean`,
@@ -44,12 +44,12 @@ storeIndex will persist an index that you can access in createPromiseCaller func
 
 `number` keys are used to set intervals, one for processRequestStack, one for updateAsyncStorage so that it calls these functions every N milliseconds. (NB updateAsyncStorage is also called after every resolved promise)
 
-`createPromiseCaller(pendingPromiseParams, getIndexItem, setIndexItem, eventDispatcher)`: this function is called to create a promise caller function for each item stored in the stack. It takes args that you might want to use to return your promise. The pendingPromiseParams is used to return a specific promise caller, the get/setIndexItem methods are used to keep and use things from a custome index (js object) during processStack (example: revision number of an updated entity since when you saved it into params it might have had an old revision number, see example below). The eventDispatcher is there in case you might want to dispatch specific events.
+`createPromiseCaller(pendingPromiseParams, getIndexItem, setIndexItem, eventDispatcher)`: this function is called to create a promise caller function for each item stored in the stack. It takes arguments that you might want to use to return your promise. The pendingPromiseParams is used to return a specific promise caller, the get/setIndexItem methods are used to keep and use things from a custom index (js object) during processStack (example: revision number of an updated entity since when you saved it into params it might have had an old revision number, see example below). The eventDispatcher is there in case you might want to dispatch specific events.
 
-`handleError(error, pendingPromiseParamsList, getIndexItem, setIndexItem, cancel, eventDispatcher)`: this function is called upon error (aka promise rejection), it takes the error as first arg so you can take action according to its type. pendingPromiseParamsList in case you might need to update it, get/setIndexItem (see above), cancel which is a function that will cancel all following promises (but not unstack them) and eventDispatcher in case you might want to dispatch specific events.
+`handleError(error, pendingPromiseParamsList, getIndexItem, setIndexItem, cancel, eventDispatcher)`: this function is called upon error (aka promise rejection), it takes the error as first argument so you can take action according to its type. pendingPromiseParamsList in case you might need to update it, get/setIndexItem (see above), cancel which is a function that will cancel all following promises (but not unstack them) and eventDispatcher in case you might want to dispatch specific events.
 
 ## Example
-```
+```javascript
 const createPromiseCaller = (
   pendingPromiseParams, // this contains the object you passed to addItem
   getIndexItem,
