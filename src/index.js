@@ -308,15 +308,16 @@ class PromiseStackResolver {
   processPromiseStack() {
     if (this.shouldProcessStack() && this.status === STATUS_READY && this.getStackSize() > 0) {
       if (this.useEventDispatcher()) {
-        for (const event of this.getProcessStackStartEventList()) {
+        this.getProcessStackStartEventList().forEach((event) => {
           this.eventDispatcher.dispatch(event);
-        }
+        });
       }
       this.lastProcessingErrorCount = 0;
       this.lastProcessingErrorList = [];
       this.status = STATUS_PROCESSING;
       const pendingPromiseCallerList = [];
-      for (const pendingPromiseParams of this.pendingPromiseParamsList) {
+
+      this.pendingPromiseParamsList.forEach((pendingPromiseParams) => {
         pendingPromiseCallerList.push(
           this.createPromiseCaller(
             pendingPromiseParams,
@@ -325,7 +326,7 @@ class PromiseStackResolver {
             this.eventDispatcher,
           ),
         );
-      }
+      });
 
       let lastPromise = pendingPromiseCallerList.reduce((callerPromise, nextCaller) => {
         if (this.shouldProcessStack() && this.status === STATUS_PROCESSING) {
@@ -358,9 +359,9 @@ class PromiseStackResolver {
             this.requestStorageUpdate();
           }
           if (this.useEventDispatcher()) {
-            for (const event of this.getProcessStackEndEventList()) {
+            this.getProcessStackEndEventList().forEach((event) => {
               this.eventDispatcher.dispatch(event);
-            }
+            });
           }
           return Promise.resolve({});
         });

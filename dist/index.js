@@ -5,6 +5,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.STATUS_CANCELLED = exports.STATUS_PROCESSING = exports.STATUS_RELEASING = exports.STATUS_OFF = exports.STATUS_READY = exports.STATUS_INITIALIZING = undefined;
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _errors = require('./errors');
@@ -364,122 +366,66 @@ var PromiseStackResolver = function () {
       var _this6 = this;
 
       if (this.shouldProcessStack() && this.status === STATUS_READY && this.getStackSize() > 0) {
-        if (this.useEventDispatcher()) {
-          var _iteratorNormalCompletion = true;
-          var _didIteratorError = false;
-          var _iteratorError = undefined;
-
-          try {
-            for (var _iterator = this.getProcessStackStartEventList()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-              var event = _step.value;
-
-              this.eventDispatcher.dispatch(event);
-            }
-          } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion && _iterator.return) {
-                _iterator.return();
-              }
-            } finally {
-              if (_didIteratorError) {
-                throw _iteratorError;
-              }
-            }
-          }
-        }
-        this.lastProcessingErrorCount = 0;
-        this.lastProcessingErrorList = [];
-        this.status = STATUS_PROCESSING;
-        var pendingPromiseCallerList = [];
-        var _iteratorNormalCompletion2 = true;
-        var _didIteratorError2 = false;
-        var _iteratorError2 = undefined;
-
-        try {
-          for (var _iterator2 = this.pendingPromiseParamsList[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-            var pendingPromiseParams = _step2.value;
-
-            pendingPromiseCallerList.push(this.createPromiseCaller(pendingPromiseParams, this.getIndexItem, this.setIndexItem, this.eventDispatcher));
-          }
-        } catch (err) {
-          _didIteratorError2 = true;
-          _iteratorError2 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion2 && _iterator2.return) {
-              _iterator2.return();
-            }
-          } finally {
-            if (_didIteratorError2) {
-              throw _iteratorError2;
-            }
-          }
-        }
-
-        var lastPromise = pendingPromiseCallerList.reduce(function (callerPromise, nextCaller) {
-          if (_this6.shouldProcessStack() && _this6.status === STATUS_PROCESSING) {
-            return callerPromise.then(function (response) {
-              return _this6.onPromiseSuccess(response, nextCaller);
-            }).catch(function (err) {
-              _this6.lastProcessingErrorCount += 1;
-              _this6.lastProcessingErrorList.push(err);
-              return _this6.onPromiseError(err);
+        var _ret = function () {
+          if (_this6.useEventDispatcher()) {
+            _this6.getProcessStackStartEventList().forEach(function (event) {
+              _this6.eventDispatcher.dispatch(event);
             });
           }
-          return _this6.onPromiseSuccess(RESPONSE_STOP);
-        }, new Promise(function (resolve) {
-          return resolve(RESPONSE_FIRST);
-        }));
+          _this6.lastProcessingErrorCount = 0;
+          _this6.lastProcessingErrorList = [];
+          _this6.status = STATUS_PROCESSING;
+          var pendingPromiseCallerList = [];
 
-        if (this.status !== STATUS_PROCESSING || !this.shouldProcessStack()) {
-          lastPromise = this.onPromiseSuccess(RESPONSE_STOP);
-        }
-        return lastPromise.then(function (response) {
-          return _this6.onPromiseSuccess(response);
-        }).catch(function (err) {
-          _this6.lastProcessingErrorCount += 1;return _this6.onPromiseError(err);
-        }).then(function () {
-          // once processing is done, merge secondaryPromises into pendingPromises
-          _this6.pendingPromiseParamsList = _this6.pendingPromiseParamsList.concat(_this6.secondaryPendingPromiseParamsList);
+          _this6.pendingPromiseParamsList.forEach(function (pendingPromiseParams) {
+            pendingPromiseCallerList.push(_this6.createPromiseCaller(pendingPromiseParams, _this6.getIndexItem, _this6.setIndexItem, _this6.eventDispatcher));
+          });
 
-          _this6.secondaryPendingPromiseParamsList = [];
-          _this6.index = {};
-          _this6.status = STATUS_READY;
-
-          if (_this6.useAsyncStorage()) {
-            _this6.requestStorageUpdate();
-          }
-          if (_this6.useEventDispatcher()) {
-            var _iteratorNormalCompletion3 = true;
-            var _didIteratorError3 = false;
-            var _iteratorError3 = undefined;
-
-            try {
-              for (var _iterator3 = _this6.getProcessStackEndEventList()[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                var _event = _step3.value;
-
-                _this6.eventDispatcher.dispatch(_event);
-              }
-            } catch (err) {
-              _didIteratorError3 = true;
-              _iteratorError3 = err;
-            } finally {
-              try {
-                if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                  _iterator3.return();
-                }
-              } finally {
-                if (_didIteratorError3) {
-                  throw _iteratorError3;
-                }
-              }
+          var lastPromise = pendingPromiseCallerList.reduce(function (callerPromise, nextCaller) {
+            if (_this6.shouldProcessStack() && _this6.status === STATUS_PROCESSING) {
+              return callerPromise.then(function (response) {
+                return _this6.onPromiseSuccess(response, nextCaller);
+              }).catch(function (err) {
+                _this6.lastProcessingErrorCount += 1;
+                _this6.lastProcessingErrorList.push(err);
+                return _this6.onPromiseError(err);
+              });
             }
+            return _this6.onPromiseSuccess(RESPONSE_STOP);
+          }, new Promise(function (resolve) {
+            return resolve(RESPONSE_FIRST);
+          }));
+
+          if (_this6.status !== STATUS_PROCESSING || !_this6.shouldProcessStack()) {
+            lastPromise = _this6.onPromiseSuccess(RESPONSE_STOP);
           }
-          return Promise.resolve({});
-        });
+          return {
+            v: lastPromise.then(function (response) {
+              return _this6.onPromiseSuccess(response);
+            }).catch(function (err) {
+              _this6.lastProcessingErrorCount += 1;return _this6.onPromiseError(err);
+            }).then(function () {
+              // once processing is done, merge secondaryPromises into pendingPromises
+              _this6.pendingPromiseParamsList = _this6.pendingPromiseParamsList.concat(_this6.secondaryPendingPromiseParamsList);
+
+              _this6.secondaryPendingPromiseParamsList = [];
+              _this6.index = {};
+              _this6.status = STATUS_READY;
+
+              if (_this6.useAsyncStorage()) {
+                _this6.requestStorageUpdate();
+              }
+              if (_this6.useEventDispatcher()) {
+                _this6.getProcessStackEndEventList().forEach(function (event) {
+                  _this6.eventDispatcher.dispatch(event);
+                });
+              }
+              return Promise.resolve({});
+            })
+          };
+        }();
+
+        if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
       }
       return Promise.resolve();
     }

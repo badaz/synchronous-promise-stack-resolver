@@ -6,8 +6,14 @@ Synchronously resolves promises using react native's AsyncStorage (tested) or Lo
 ```
 npm install --save synchronous-promise-stack-resolver
 ```
+Then import it in your code:
+
+```
+import PromiseStackResolver from 'synchronous-promise-stack-resolver';
+```
+
 ## What's the purpose of this package ?
-Initially, this package was built for a personal purpose. I was building an offline first React Native app and wanted to synchrnoize user data to a server. On each user CRUD action I had to store the parameters of the action and replay them as POST, PUT, DELETE requests later on in the same order as they came in the first place. I also had to handle each response differently according to its nature or status code. Additionaly I also needed to send events before and after everything was resolved.
+Initially, this package was built for a personal purpose. I was building an offline first React Native app and wanted to synchronize user data to a server. On each user CRUD action I had to store the parameters of the action and replay them as POST, PUT, DELETE requests later on in the same order as they came in the first place. I also had to handle each response differently according to its nature or status code. Additionaly I also needed to send events before and after everything was resolved.
 
 ## How does it work ?
 Once configured and initialized, the PromiseStackResolver can be used in different ways. You can either call start() and it will try to resolve everything it has in its stack (gotten from storage or memory) on every tick (see configuration section), or you can just call processStack whenever you need. You add the params for a promise using addItem(item) and the promise is created using the createPromiseCaller function you provide via the configuration object. You also have to provide an handleError function if you want to take specific action in case of Promise rejection.
