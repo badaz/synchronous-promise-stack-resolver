@@ -267,9 +267,6 @@ class PromiseStackResolver {
   }
 
   start() {
-    if (this.status !== STATUS_OFF) {
-      return this.stop().then(() => this.start());
-    }
     if (this.useAsyncStorage() && this.updateAsyncStorageIntervalLength) {
       this.updateStorageInterval =
         setInterval(() => this.updateStorage(), this.updateAsyncStorageIntervalLength);
