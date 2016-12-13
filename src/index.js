@@ -1,4 +1,4 @@
-import { PromiseStackResolverError } from './errors';
+import PromiseStackResolverError from './errors';
 
 export const STATUS_INITIALIZING = 'initializing';
 export const STATUS_READY = 'ready';
@@ -110,18 +110,18 @@ class PromiseStackResolver {
 
     if (this.useAsyncStorage()) {
       return this.asyncStorageManager.getItem(this.pendingPromiseParamsListKey)
-        .then(data => {
+        .then((data) => {
           if (data) {
             this.pendingPromiseParamsList = JSON.parse(data);
           }
           return this.asyncStorageManager.getItem(this.secondaryPendingPromiseParamsListKey)
-            .then(secondaryData => {
+            .then((secondaryData) => {
               if (secondaryData) {
                 this.secondaryPendingPromiseParamsList = JSON.parse(secondaryData);
               }
               if (this.storeIndex()) {
                 return this.asyncStorageManager.getItem(this.indexKey)
-                  .then(index => {
+                  .then((index) => {
                     if (index) {
                       this.index = JSON.parse(index);
                     }
@@ -167,9 +167,10 @@ class PromiseStackResolver {
           this.updatingStorage = true;
           return this.asyncStorageManager.setItem(
             this.pendingPromiseParamsListKey, JSON.stringify(this.pendingPromiseParamsList))
-          .then(() => {
-            return this.asyncStorageManager.setItem(
-              this.secondaryPendingPromiseParamsListKey, JSON.stringify(this.secondaryPendingPromiseParamsList))
+          .then(() =>
+            this.asyncStorageManager.setItem(
+              this.secondaryPendingPromiseParamsListKey,
+                JSON.stringify(this.secondaryPendingPromiseParamsList))
               .then(() => {
                 if (this.storeIndex()) {
                   return this.asyncStorageManager.setItem(this.indexKey, JSON.stringify(this.index))
@@ -178,12 +179,11 @@ class PromiseStackResolver {
                 }
                 return this.onUpdateStorageSuccess();
               })
-              .catch(() => this.onUpdateStorageError());
-          })
+              .catch(() => this.onUpdateStorageError()),
+          )
           .catch(() => this.onUpdateStorageError());
-        } else {
-          return Promise.resolve();
         }
+        return Promise.resolve();
       }
       return Promise.resolve('updating');
     }
@@ -243,14 +243,14 @@ class PromiseStackResolver {
 
   clearStorage() {
     if (this.useAsyncStorage()) {
-      return this.asyncStorageManager.removeItem(this.pendingPromiseParamsListKey).then(() => {
-        return this.asyncStorageManager.removeItem(this.secondaryPendingPromiseParamsListKey).then(() => {
+      return this.asyncStorageManager.removeItem(this.pendingPromiseParamsListKey).then(() =>
+        this.asyncStorageManager.removeItem(this.secondaryPendingPromiseParamsListKey).then(() => {
           if (this.storeIndex()) {
             return this.asyncStorageManager.removeItem(this.indexKey);
           }
           return Promise.resolve();
-        });
-      });
+        }),
+      );
     }
     return Promise.resolve();
   }
@@ -268,13 +268,15 @@ class PromiseStackResolver {
 
   start() {
     if (this.status !== STATUS_OFF) {
-      return this.stop().then(() => this.start())
+      return this.stop().then(() => this.start());
     }
     if (this.useAsyncStorage() && this.updateAsyncStorageIntervalLength) {
-      this.updateStorageInterval = setInterval(() => this.updateStorage(), this.updateAsyncStorageIntervalLength);
+      this.updateStorageInterval =
+        setInterval(() => this.updateStorage(), this.updateAsyncStorageIntervalLength);
     }
     if (this.processPromiseStackIntervalLength) {
-      this.processPromiseStackInterval = setInterval(() => this.processPromiseStack(), this.processPromiseStackIntervalLength);
+      this.processPromiseStackInterval =
+        setInterval(() => this.processPromiseStack(), this.processPromiseStackIntervalLength);
     }
     return Promise.resolve();
   }
@@ -323,8 +325,8 @@ class PromiseStackResolver {
             pendingPromiseParams,
             this.getIndexItem,
             this.setIndexItem,
-            this.eventDispatcher
-          )
+            this.eventDispatcher,
+          ),
         );
       }
 
@@ -332,24 +334,24 @@ class PromiseStackResolver {
         if (this.shouldProcessStack() && this.status === STATUS_PROCESSING) {
           return callerPromise
             .then(response => this.onPromiseSuccess(response, nextCaller))
-            .catch(err => {
-              this.lastProcessingErrorCount++;
+            .catch((err) => {
+              this.lastProcessingErrorCount += 1;
               this.lastProcessingErrorList.push(err);
               return this.onPromiseError(err);
             });
-        } else {
-          return this.onPromiseSuccess(RESPONSE_STOP);
         }
+        return this.onPromiseSuccess(RESPONSE_STOP);
       }, new Promise(resolve => resolve(RESPONSE_FIRST)));
 
       if (this.status !== STATUS_PROCESSING || !this.shouldProcessStack()) {
         lastPromise = this.onPromiseSuccess(RESPONSE_STOP);
       }
       return lastPromise.then(response => this.onPromiseSuccess(response))
-        .catch(err => { this.lastProcessingErrorCount++; return this.onPromiseError(err); })
+        .catch((err) => { this.lastProcessingErrorCount += 1; return this.onPromiseError(err); })
         .then(() => {
           // once processing is done, merge secondaryPromises into pendingPromises
-          this.pendingPromiseParamsList = this.pendingPromiseParamsList.concat(this.secondaryPendingPromiseParamsList);
+          this.pendingPromiseParamsList =
+            this.pendingPromiseParamsList.concat(this.secondaryPendingPromiseParamsList);
 
           this.secondaryPendingPromiseParamsList = [];
           this.index = {};
@@ -374,17 +376,18 @@ class PromiseStackResolver {
       this.pendingPromiseParamsList.shift();
       this.requestStorageUpdate();
     }
-    return this.updateStorage().then(() => {
-      if (caller) {
-        return caller();
-      } else {
-        return Promise.resolve();
-      }
-    });
+    return this.updateStorage().then(() => (caller ? caller() : Promise.resolve()));
   }
 
   onPromiseError(error) {
-    this.handleError(error, this.pendingPromiseParamsList, this.getIndexItem, this.setIndexItem, this.cancel, this.eventDispatcher);
+    this.handleError(
+      error,
+      this.pendingPromiseParamsList,
+      this.getIndexItem,
+      this.setIndexItem,
+      this.cancel,
+      this.eventDispatcher,
+    );
     return Promise.resolve(RESPONSE_ERROR);
   }
 }

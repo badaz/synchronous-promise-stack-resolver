@@ -1,5 +1,6 @@
 export default class EventDispatcher {
   dispatch(event) {
-    return;
+    this.lastEvent = event;
+    return event;
   }
 }
