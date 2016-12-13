@@ -4,11 +4,11 @@
   "description": "Synchronously resolves promises using localForage (not tested) or react native's asyncStorage if needed and any kind of event dispatcher",
   "main": "dist/index.js",
   "scripts": {
-    "lint": "eslint src/**/*.js test/**/*.js __test__/**/*.js",
+    "lint": "BABEL_ENV=development && eslint src/**/*.js test/**/*.js __test__/**/*.js",
     "clean": "rimraf dist",
-    "test": "jest",
+    "test": "BABEL_ENV=development && jest",
     "test:watch": "npm run test -- --watch",
-    "build": "babel src --out-dir dist",
+    "build": "BABEL_ENV=development && babel src --out-dir dist",
     "check:src": "npm run test",
     "prepublish": "npm run clean && npm run check:src && npm run build"
   },

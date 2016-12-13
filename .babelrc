@@ -1,9 +1,11 @@
 {
-  "presets": [
-    "es2015",
-    "es2017"
-  ],
-  "plugins": [
-    "babel-plugin-transform-async-functions"
-  ]
+  "env": {
+    "development": {
+      "presets": [
+        "es2015",
+        "es2017"
+      ],
+      "plugins": ["babel-plugin-transform-async-functions"]
+    }
+  }
 }
