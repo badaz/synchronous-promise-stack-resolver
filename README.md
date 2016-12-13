@@ -48,6 +48,21 @@ storeIndex will persist an index that you can access in createPromiseCaller func
 
 `handleError(error, pendingPromiseParamsList, getIndexItem, setIndexItem, cancel, eventDispatcher)`: this function is called upon error (aka promise rejection), it takes the error as first argument so you can take action according to its type. pendingPromiseParamsList in case you might need to update it, get/setIndexItem (see above), cancel which is a function that will cancel all following promises (but not unstack them) and eventDispatcher in case you might want to dispatch specific events.
 
+## Helper methods
+A number of helper methods are available on the instance of PromiseStackResolver:
+
+- isSynced(): returns true if when processing is finished and stack is empty
+- getStackSize(): returns the number of items contained in pendingPromiseParamsList
+- getSecondaryStackSize(): returns the number of items contained in secondaryPendingPromiseParamsList (this secondaryStack is used when addItem(item) is called while processStack is running, it is merged in normal stack after processStack is finished)
+- getLastProcessingErrorCount(): returns the count of errors found during last call to processStack
+- getLastProcessingErrorList: returns an array of the errors found during last call to processStack
+- stop(): stops the automatic calls to processStack and updateAsyncStorage end releases resources
+- isProcessing(): returns a boolean indicating if processStack is actually running or not
+- clearStorage(): removes all data contained in storage corresponding to config's keys
+- getStatus(): returns the status of the PromiseStackResolver
+- requestStorageUpdate(): request updating storage next time updateAsyncStorage is called
+- revokeStorageUpdate(): revoke updating storage next time updateAsyncStorage is called
+
 ## Example
 ```javascript
 const createPromiseCaller = (
@@ -164,7 +179,4 @@ promiseStackResolverInstance.init(config) // initialize with config object
       })
   })
 ;
-
-
-
 ```
