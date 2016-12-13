@@ -55,7 +55,7 @@ A number of helper methods are available on the instance of PromiseStackResolver
 - getStackSize(): returns the number of items contained in pendingPromiseParamsList
 - getSecondaryStackSize(): returns the number of items contained in secondaryPendingPromiseParamsList (this secondaryStack is used when addItem(item) is called while processStack is running, it is merged in normal stack after processStack is finished)
 - getLastProcessingErrorCount(): returns the count of errors found during last call to processStack
-- getLastProcessingErrorList: returns an array of the errors found during last call to processStack
+- getLastProcessingErrorList(): returns an array of the errors found during last call to processStack
 - stop(): stops the automatic calls to processStack and updateAsyncStorage end releases resources
 - isProcessing(): returns a boolean indicating if processStack is actually running or not
 - clearStorage(): removes all data contained in storage corresponding to config's keys
