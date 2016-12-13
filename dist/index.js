@@ -334,9 +334,11 @@ var PromiseStackResolver = function () {
     value: function stop() {
       if (this.updateStorageInterval) {
         clearInterval(this.updateStorageInterval);
+        this.updateStorageInterval = null;
       }
       if (this.processPromiseStackInterval) {
         clearInterval(this.processPromiseStackInterval);
+        this.processPromiseStackInterval = null;
       }
       return this.release();
     }
