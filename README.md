@@ -51,7 +51,7 @@ storeIndex will persist an index that you can access in createPromiseCaller func
 ## Helper methods
 A number of helper methods are available on the instance of PromiseStackResolver:
 
-- isSynced(): returns true if when processing is finished and stack is empty
+- isSynced(): returns true when processing is finished and stack is empty
 - getStackSize(): returns the number of items contained in pendingPromiseParamsList
 - getSecondaryStackSize(): returns the number of items contained in secondaryPendingPromiseParamsList (this secondaryStack is used when addItem(item) is called while processStack is running, it is merged in normal stack after processStack is finished)
 - getLastProcessingErrorCount(): returns the count of errors found during last call to processStack
