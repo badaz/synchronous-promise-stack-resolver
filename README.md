@@ -135,19 +135,19 @@ const handleError = (
 }
 
 const config = {
-  pendingPromiseParamsListKey: 'pending_promise_params_list',
-  secondaryPendingPromiseParamsListKey: 'secondary_pending_promise_params_list',
   storeIndex: true,
-  indexKey: 'revision_index',
   useEventDispatcher: true,
   useAsyncStorage: true,
+  pendingPromiseParamsListKey: 'pending_promise_params_list',
+  secondaryPendingPromiseParamsListKey: 'secondary_pending_promise_params_list',
+  indexKey: 'revision_index',
+  updateAsyncStorageIntervalLength: 3000,
+  processPromiseStackIntervalLength: 3000,
   getProcessStackStartEventList: () => [{}, {}], // any events
   getProcessStackEndEventList: () => [{}, {}, {}], // any events
   shouldProcessStack: () => true, // any function, if it returns true processStack will proceed
   handleError,
   createPromiseCaller,
-  updateAsyncStorageIntervalLength: 3000,
-  processPromiseStackIntervalLength: 3000,
 }
 
 const promiseStackResolverInstance = new PromiseStackResolver(anyAsyncStorage, anyEventDispatcher);
