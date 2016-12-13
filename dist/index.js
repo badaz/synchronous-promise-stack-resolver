@@ -9,6 +9,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _errors = require('./errors');
 
+var _errors2 = _interopRequireDefault(_errors);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var STATUS_INITIALIZING = exports.STATUS_INITIALIZING = 'initializing';
@@ -77,7 +81,7 @@ var PromiseStackResolver = function () {
       this.status = STATUS_INITIALIZING;
 
       if (!config) {
-        throw new _errors.PromiseStackResolverError('config is required');
+        throw new _errors2.default('config is required');
       }
       this.config = config;
 
@@ -93,17 +97,17 @@ var PromiseStackResolver = function () {
       };
 
       if (!!config.updateAsyncStorageIntervalLength && typeof config.updateAsyncStorageIntervalLength !== 'number') {
-        throw new _errors.PromiseStackResolverError('updateAsyncStorageIntervalLength must be a number');
+        throw new _errors2.default('updateAsyncStorageIntervalLength must be a number');
       }
       this.updateAsyncStorageIntervalLength = config.updateAsyncStorageIntervalLength;
 
       if (!!config.processPromiseStackIntervalLength && typeof config.processPromiseStackIntervalLength !== 'number') {
-        throw new _errors.PromiseStackResolverError('processPromiseStackIntervalLength must be a number');
+        throw new _errors2.default('processPromiseStackIntervalLength must be a number');
       }
       this.processPromiseStackIntervalLength = config.processPromiseStackIntervalLength;
 
       if (!!config.useAsyncStorage && !this.asyncStorageManager) {
-        throw new _errors.PromiseStackResolverError('useAsyncStorage is enabled but no asyncStorageManager is present');
+        throw new _errors2.default('useAsyncStorage is enabled but no asyncStorageManager is present');
       }
 
       this.handleError = typeof config.handleError === 'function' ? config.handleError : function () {
@@ -116,7 +120,7 @@ var PromiseStackResolver = function () {
       };
 
       if (this.useAsyncStorage() && (!config.pendingPromiseParamsListKey || typeof config.pendingPromiseParamsListKey !== 'string' || !config.secondaryPendingPromiseParamsListKey || typeof config.secondaryPendingPromiseParamsListKey !== 'string')) {
-        throw new _errors.PromiseStackResolverError('useAsyncStorage is enabled, you must provide pendingPromiseParamsListKey and secondaryPendingPromiseParamsListKey as strings');
+        throw new _errors2.default('useAsyncStorage is enabled, you must provide pendingPromiseParamsListKey and secondaryPendingPromiseParamsListKey as strings');
       }
       this.pendingPromiseParamsListKey = config.pendingPromiseParamsListKey;
       this.pendingPromiseParamsList = [];
@@ -125,13 +129,13 @@ var PromiseStackResolver = function () {
       this.secondaryPendingPromiseParamsList = [];
 
       if (this.useAsyncStorage() && config.storeIndex && (!config.indexKey || typeof config.indexKey !== 'string')) {
-        throw new _errors.PromiseStackResolverError('useAsyncStorage and storeIndex are enabled, you must provide indexKey as string');
+        throw new _errors2.default('useAsyncStorage and storeIndex are enabled, you must provide indexKey as string');
       }
       this.index = {};
       this.indexKey = config.indexKey;
 
       if (!!config.useEventDispatcher && !this.eventDispatcher) {
-        throw new _errors.PromiseStackResolverError('useEventDispatcher is enabled, but you did not provide an eventDispatcher');
+        throw new _errors2.default('useEventDispatcher is enabled, but you did not provide an eventDispatcher');
       }
 
       if (this.useAsyncStorage()) {
@@ -210,9 +214,8 @@ var PromiseStackResolver = function () {
             }).catch(function () {
               return _this2.onUpdateStorageError();
             });
-          } else {
-            return Promise.resolve();
           }
+          return Promise.resolve();
         }
         return Promise.resolve('updating');
       }
@@ -426,13 +429,12 @@ var PromiseStackResolver = function () {
             return callerPromise.then(function (response) {
               return _this6.onPromiseSuccess(response, nextCaller);
             }).catch(function (err) {
-              _this6.lastProcessingErrorCount++;
+              _this6.lastProcessingErrorCount += 1;
               _this6.lastProcessingErrorList.push(err);
               return _this6.onPromiseError(err);
             });
-          } else {
-            return _this6.onPromiseSuccess(RESPONSE_STOP);
           }
+          return _this6.onPromiseSuccess(RESPONSE_STOP);
         }, new Promise(function (resolve) {
           return resolve(RESPONSE_FIRST);
         }));
@@ -443,7 +445,7 @@ var PromiseStackResolver = function () {
         return lastPromise.then(function (response) {
           return _this6.onPromiseSuccess(response);
         }).catch(function (err) {
-          _this6.lastProcessingErrorCount++;return _this6.onPromiseError(err);
+          _this6.lastProcessingErrorCount += 1;return _this6.onPromiseError(err);
         }).then(function () {
           // once processing is done, merge secondaryPromises into pendingPromises
           _this6.pendingPromiseParamsList = _this6.pendingPromiseParamsList.concat(_this6.secondaryPendingPromiseParamsList);
@@ -494,11 +496,7 @@ var PromiseStackResolver = function () {
         this.requestStorageUpdate();
       }
       return this.updateStorage().then(function () {
-        if (caller) {
-          return caller();
-        } else {
-          return Promise.resolve();
-        }
+        return caller ? caller() : Promise.resolve();
       });
     }
   }, {

@@ -11,4 +11,4 @@ function PromiseStackResolverError(message) {
 PromiseStackResolverError.prototype = Object.create(Error.prototype);
 PromiseStackResolverError.prototype.constructor = PromiseStackResolverError;
 
-exports.PromiseStackResolverError = PromiseStackResolverError;
+exports.default = PromiseStackResolverError;
