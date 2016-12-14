@@ -24,21 +24,19 @@ The PromiseStackResolver's constructor optionnaly takes an implementation of asy
 
 ### Configuration
 The init method takes an object as only argument which must contain some configuration data, here is the list:
-- createPromiseCaller (optional): `function` returning `function` that returns a Promise object (see below),
-- useEventDispatcher (optional): `boolean`,
-- useAsyncStorage (optional): `boolean`,
-- storeIndex (optional): `boolean`,
-- pendingPromiseParamsListKey (optional): `string`,
-- secondaryPendingPromiseParamsListKey (optional): `string`,
-- indexKey (optional): `string`,
-- updateAsyncStorageIntervalLength (optional) : `number` (milliseconds),
-- processPromiseStackIntervalLength (optional): `number` (milliseconds),
-- getProcessStackStartEventList (optional): `function` returning array of event objects to be dispatched by the eventDispatcher provided to the constructor
-- getProcessStackEndEventList (optional): `function` returning array of event objects to be dispatched by the eventDispatcher provided to the constructor
-- shouldProcessStack (optional): `function` returning boolean
-- handleError (optional): `function` returning Promise
-
-Every param is optional, but if you do not pass at least a createPromiseCaller function your PromiseStackResolver will just not do anything, it will resolve empty promises if there are items in the stack and processStack is called and that's all.
+- createPromiseCaller: `function` returning `function` that returns a Promise object (see below),
+- useEventDispatcher (optional): `boolean` (default: false),
+- useAsyncStorage (optional): `boolean` (default: false),
+- pendingPromiseParamsListKey (required if useAsyncStorage is true): `string`,
+- secondaryPendingPromiseParamsListKey (required if useAsyncStorage is true): `string`,
+- storeIndex (optional): `boolean` (default: false),
+- indexKey (required if useAsyncStorage and storeIndex are true): `string`,
+- updateAsyncStorageIntervalLength (optional) : `number` (milliseconds) (default: null),
+- processPromiseStackIntervalLength (optional): `number` (milliseconds) (default: null),
+- getProcessStackStartEventList (optional): `function` returning array of event objects to be dispatched by the eventDispatcher provided to the constructor  (default: []),
+- getProcessStackEndEventList (optional): `function` returning array of event objects to be dispatched by the eventDispatcher provided to the constructor  (default: []),
+- shouldProcessStack (optional): `function` returning boolean (default: () => true),
+- handleError (optional): `function` returning Promise (default: () => Promise.resolve())
 
 `boolean` keys are used to specify if you wish to use specific functionality, for example if useEventDispatcher is set to true, the processStack method will trigger all the events contained in the array returned by the getProcessStackStartEventList provided function when it starts, and all the events contained in the array returned by the getProcessStackEndEventList provided function when it ends. It will not work if you did not provide an eventDispatcher at construct.
 
@@ -103,7 +101,7 @@ const createPromiseCaller = (
         const beforePutEvent = {};
         eventDispatcher.dispatch(beforePutEvent);
         // get the currentRev from the index
-        const currentRev = getIndex(pendingPromiseParams.body.id);
+        const currentRev = getIndexItem(pendingPromiseParams.body.id);
         if (currentRev && pendingPromiseParams.body.rev < currentRev) {
           // update entity with current rev
           pendingPromiseParams.body.rev = currentRev;
@@ -132,21 +130,11 @@ const handleError = (
   eventDispatcher
 ) => {
   switch (error.name) {
-    case 'BadRequestError':
-    case 'AccessDeniedError':
-    case 'ResourceNotFoundError':
-    case 'MethodNotAllowedError':
     case 'ConflictError':
       const errorEvent = {};
       eventDispatcher.dispatch(errorEvent);
       pendingPromiseParamsList.shift();
       break;
-    case 'NoNetworkError':
-    case 'TypeError':
-    case 'BadGatewayError':
-    case 'InternalServerError':
-    case 'ServiceUnavailableError':
-    case 'GatewayTimeoutError':
     default:
       const cancelEvent = {};
       eventDispatcher.dispatch(errorEvent);
