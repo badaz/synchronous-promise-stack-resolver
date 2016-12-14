@@ -20,7 +20,7 @@ Once configured and initialized, the PromiseStackResolver can be used in differe
 
 ## Configuration
 ### Constructor
-The PromiseStackResolver's constructor optionnaly takes an implementation of asynchronous storage as first argument (React Native's AsyncStorage or browser's LocalForage) that must implement async methods getItem, setItem and removeItem. As a second argument you may provide an event dispatcher of your choice that must implement a dispatch method.
+The PromiseStackResolver's constructor optionnaly takes an implementation of asynchronous storage as first argument (React Native's `AsyncStorage` or browser's `localForage` for example) that must implement async methods `getItem`, `setItem` and `removeItem`. As a second argument you may provide an event dispatcher of your choice that must implement a `dispatch` method.
 
 ### Configuration
 The init method takes an object as only argument which must contain some configuration data, here is the list:
