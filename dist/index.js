@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.STATUS_CANCELLED = exports.STATUS_PROCESSING = exports.STATUS_RELEASING = exports.STATUS_OFF = exports.STATUS_READY = exports.STATUS_INITIALIZING = undefined;
+exports.TIMEOUT_STOPPED = exports.TIMEOUT_STARTED = exports.STATUS_CANCELLED = exports.STATUS_PROCESSING = exports.STATUS_RELEASING = exports.STATUS_OFF = exports.STATUS_READY = exports.STATUS_INITIALIZING = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -24,6 +24,9 @@ var STATUS_RELEASING = exports.STATUS_RELEASING = 'releasing';
 var STATUS_PROCESSING = exports.STATUS_PROCESSING = 'processing';
 var STATUS_CANCELLED = exports.STATUS_CANCELLED = 'cancelled';
 
+var TIMEOUT_STARTED = exports.TIMEOUT_STARTED = 'timeout_started';
+var TIMEOUT_STOPPED = exports.TIMEOUT_STOPPED = 'timeout_paused';
+
 var RESPONSE_STOP = 'stop';
 var RESPONSE_FIRST = 'first';
 var RESPONSE_ERROR = 'error';
@@ -43,6 +46,7 @@ var PromiseStackResolver = function () {
     this.updatingStorage = false;
     this.storageUpdateRequired = false;
     this.status = STATUS_OFF;
+    this.timeoutStatus = TIMEOUT_STOPPED;
     this.lastProcessingErrorCount = 0;
     this.lastProcessingErrorList = [];
 
@@ -327,6 +331,7 @@ var PromiseStackResolver = function () {
           return _this5.processPromiseStack();
         }, this.processPromiseStackIntervalLength);
       }
+      this.timeoutStatus = TIMEOUT_STARTED;
       return Promise.resolve();
     }
   }, {
@@ -341,6 +346,34 @@ var PromiseStackResolver = function () {
         this.processPromiseStackInterval = null;
       }
       return this.release();
+    }
+  }, {
+    key: 'pause',
+    value: function pause() {
+      if (this.timeoutStatus === TIMEOUT_STARTED) {
+        if (this.updateStorageInterval) {
+          clearInterval(this.updateStorageInterval);
+          this.updateStorageInterval = null;
+        }
+        if (this.processPromiseStackInterval) {
+          clearInterval(this.processPromiseStackInterval);
+          this.processPromiseStackInterval = null;
+        }
+        this.timeoutStatus = TIMEOUT_STOPPED;
+      }
+      return Promise.resolve(this.timeoutStatus);
+    }
+  }, {
+    key: 'resume',
+    value: function resume() {
+      var _this6 = this;
+
+      if (this.timeoutStatus === TIMEOUT_STOPPED) {
+        return this.start().then(function () {
+          return _this6.timeoutStatus;
+        });
+      }
+      return Promise.resolve(this.timeoutStatus);
     }
   }, {
     key: 'getStatus',
@@ -365,61 +398,61 @@ var PromiseStackResolver = function () {
   }, {
     key: 'processPromiseStack',
     value: function processPromiseStack() {
-      var _this6 = this;
+      var _this7 = this;
 
       if (this.shouldProcessStack() && this.status === STATUS_READY && this.getStackSize() > 0) {
         var _ret = function () {
-          if (_this6.useEventDispatcher()) {
-            _this6.getProcessStackStartEventList().forEach(function (event) {
-              _this6.eventDispatcher.dispatch(event);
+          if (_this7.useEventDispatcher()) {
+            _this7.getProcessStackStartEventList().forEach(function (event) {
+              _this7.eventDispatcher.dispatch(event);
             });
           }
-          _this6.lastProcessingErrorCount = 0;
-          _this6.lastProcessingErrorList = [];
-          _this6.status = STATUS_PROCESSING;
+          _this7.lastProcessingErrorCount = 0;
+          _this7.lastProcessingErrorList = [];
+          _this7.status = STATUS_PROCESSING;
           var pendingPromiseCallerList = [];
 
-          _this6.pendingPromiseParamsList.forEach(function (pendingPromiseParams) {
-            pendingPromiseCallerList.push(_this6.createPromiseCaller(pendingPromiseParams, _this6.getIndexItem, _this6.setIndexItem, _this6.eventDispatcher));
+          _this7.pendingPromiseParamsList.forEach(function (pendingPromiseParams) {
+            pendingPromiseCallerList.push(_this7.createPromiseCaller(pendingPromiseParams, _this7.getIndexItem, _this7.setIndexItem, _this7.eventDispatcher));
           });
 
           var lastPromise = pendingPromiseCallerList.reduce(function (callerPromise, nextCaller) {
-            if (_this6.shouldProcessStack() && _this6.status === STATUS_PROCESSING) {
+            if (_this7.shouldProcessStack() && _this7.status === STATUS_PROCESSING) {
               return callerPromise.then(function (response) {
-                return _this6.onPromiseSuccess(response, nextCaller);
+                return _this7.onPromiseSuccess(response, nextCaller);
               }).catch(function (err) {
-                _this6.lastProcessingErrorCount += 1;
-                _this6.lastProcessingErrorList.push(err);
-                return _this6.onPromiseError(err);
+                _this7.lastProcessingErrorCount += 1;
+                _this7.lastProcessingErrorList.push(err);
+                return _this7.onPromiseError(err);
               });
             }
-            return _this6.onPromiseSuccess(RESPONSE_STOP);
+            return _this7.onPromiseSuccess(RESPONSE_STOP);
           }, new Promise(function (resolve) {
             return resolve(RESPONSE_FIRST);
           }));
 
-          if (_this6.status !== STATUS_PROCESSING || !_this6.shouldProcessStack()) {
-            lastPromise = _this6.onPromiseSuccess(RESPONSE_STOP);
+          if (_this7.status !== STATUS_PROCESSING || !_this7.shouldProcessStack()) {
+            lastPromise = _this7.onPromiseSuccess(RESPONSE_STOP);
           }
           return {
             v: lastPromise.then(function (response) {
-              return _this6.onPromiseSuccess(response);
+              return _this7.onPromiseSuccess(response);
             }).catch(function (err) {
-              _this6.lastProcessingErrorCount += 1;return _this6.onPromiseError(err);
+              _this7.lastProcessingErrorCount += 1;return _this7.onPromiseError(err);
             }).then(function () {
               // once processing is done, merge secondaryPromises into pendingPromises
-              _this6.pendingPromiseParamsList = _this6.pendingPromiseParamsList.concat(_this6.secondaryPendingPromiseParamsList);
+              _this7.pendingPromiseParamsList = _this7.pendingPromiseParamsList.concat(_this7.secondaryPendingPromiseParamsList);
 
-              _this6.secondaryPendingPromiseParamsList = [];
-              _this6.index = {};
-              _this6.status = STATUS_READY;
+              _this7.secondaryPendingPromiseParamsList = [];
+              _this7.index = {};
+              _this7.status = STATUS_READY;
 
-              if (_this6.useAsyncStorage()) {
-                _this6.requestStorageUpdate();
+              if (_this7.useAsyncStorage()) {
+                _this7.requestStorageUpdate();
               }
-              if (_this6.useEventDispatcher()) {
-                _this6.getProcessStackEndEventList().forEach(function (event) {
-                  _this6.eventDispatcher.dispatch(event);
+              if (_this7.useEventDispatcher()) {
+                _this7.getProcessStackEndEventList().forEach(function (event) {
+                  _this7.eventDispatcher.dispatch(event);
                 });
               }
               return Promise.resolve({});

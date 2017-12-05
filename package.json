@@ -38,9 +38,9 @@
   "bugs": {
     "url": "https://github.com/badaz/synchronous-promise-stack-resolver/issues"
   },
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/badaz/synchronous-promise-stack-resolver.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/badaz/synchronous-promise-stack-resolver.git"
   },
   "homepage": "https://github.com/badaz/synchronous-promise-stack-resolver#readme",
   "eslintConfig": {
@@ -53,7 +53,13 @@
           "capIsNew": false
         }
       ],
-      "no-unused-vars": ["error", { "vars": "all", "args": "none" }],
+      "no-unused-vars": [
+        "error",
+        {
+          "vars": "all",
+          "args": "none"
+        }
+      ],
       "react/prefer-es6-class": 1
     }
   },
