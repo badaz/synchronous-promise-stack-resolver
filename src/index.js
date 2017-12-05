@@ -3,6 +3,8 @@ import PromiseStackResolverError from './errors';
 export const STATUS_INITIALIZING = 'initializing';
 export const STATUS_READY = 'ready';
 export const STATUS_OFF = 'off';
+export const STATUS_PAUSED = 'paused';
+export const STATUS_STARTED = 'started';
 export const STATUS_RELEASING = 'releasing';
 export const STATUS_PROCESSING = 'processing';
 export const STATUS_CANCELLED = 'cancelled';
@@ -256,7 +258,7 @@ class PromiseStackResolver {
   }
 
   addItem(object) {
-    if (this.status === STATUS_READY) {
+    if (this.status === STATUS_READY || this.status === STATUS_STARTED) {
       this.pendingPromiseParamsList.push(object);
     } else {
       this.secondaryPendingPromiseParamsList.push(object);
@@ -275,6 +277,7 @@ class PromiseStackResolver {
       this.processPromiseStackInterval =
         setInterval(() => this.processPromiseStack(), this.processPromiseStackIntervalLength);
     }
+    this.status = STATUS_STARTED;
     return Promise.resolve();
   }
 
@@ -290,12 +293,35 @@ class PromiseStackResolver {
     return this.release();
   }
 
+  pause() {
+    if (this.status !== STATUS_OFF && this.status !== STATUS_INITIALIZING && this.status !== STATUS_RELEASING) {
+      if (this.updateStorageInterval) {
+        clearInterval(this.updateStorageInterval);
+        this.updateStorageInterval = null;
+      }
+      if (this.processPromiseStackInterval) {
+        clearInterval(this.processPromiseStackInterval);
+        this.processPromiseStackInterval = null;
+      }
+      this.status = STATUS_PAUSED;
+      return Promise.resolve(this.status);
+    }
+    return Promise.resolve(this.status);
+  }
+
+  resume() {
+    if (this.status === STATUS_PAUSED) {
+      return this.start().then(() => this.status);
+    }
+    return Promise.resolve(this.status);
+  }
+
   getStatus() {
     return this.status;
   }
 
   isSynced() {
-    return this.status === STATUS_READY &&
+    return (this.status === STATUS_READY || this.status === STATUS_STARTED) &&
       this.getStackSize() === 0 && this.getSecondaryStackSize() === 0;
   }
 
@@ -308,7 +334,7 @@ class PromiseStackResolver {
   }
 
   processPromiseStack() {
-    if (this.shouldProcessStack() && this.status === STATUS_READY && this.getStackSize() > 0) {
+    if (this.shouldProcessStack() && (this.status === STATUS_READY || this.status === STATUS_STARTED) && this.getStackSize() > 0) {
       if (this.useEventDispatcher()) {
         this.getProcessStackStartEventList().forEach((event) => {
           this.eventDispatcher.dispatch(event);
