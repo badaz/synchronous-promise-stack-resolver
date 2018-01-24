@@ -382,7 +382,6 @@ class PromiseStackResolver {
 
           this.secondaryPendingPromiseParamsList = [];
           this.index = {};
-          this.status = STATUS_READY;
 
           if (this.useAsyncStorage()) {
             this.requestStorageUpdate();
@@ -392,6 +391,8 @@ class PromiseStackResolver {
               this.eventDispatcher.dispatch(event);
             });
           }
+
+          this.status = STATUS_READY;
           return Promise.resolve({});
         });
     }
