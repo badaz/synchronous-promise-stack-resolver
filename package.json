@@ -1,6 +1,6 @@
 {
   "name": "synchronous-promise-stack-resolver",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Synchronously resolves promises using localForage (not tested) or react native's asyncStorage if needed and any kind of event dispatcher",
   "author": "Sylvère Grégeois",
   "license": "MIT",
